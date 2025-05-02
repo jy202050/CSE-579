@@ -1,0 +1,10 @@
+% Orders
+:- not orderLocation(OrderID,object(node,_),contains(ProductID,0),t), orderLocation(OrderID,object(node,_),contains(ProductID,_),0).
+:- deliver(RobotID,OrderID,with(_,ProductID,_),TimeStep), orderLocation(OrderID,object(node,NodeID),contains(ProductID,_),TimeStep), not robotLocation(RobotID,object(node,NodeID),TimeStep).
+:- deliver(RobotID,OrderID,with(ShelfID,ProductID,_),TimeStep), productLocatedAt(ProductID,object(shelf,ShelfID),with(quantity,_),TimeStep), not shelfLocatedAt(ShelfID,object(robot,RobotID),TimeStep).
+:- deliver(RobotID,OrderID,with(ShelfID,ProductID,DeliveredQty),TimeStep), orderLocation(OrderID,object(node,NodeID),contains(ProductID,OrderedQty),TimeStep), DeliveredQty>OrderedQty.
+:- deliver(RobotID,OrderID,with(ShelfID,ProductID,DeliveredQty),TimeStep), productLocatedAt(ProductID,object(shelf,ShelfID),with(quantity,AvailableQty),TimeStep), DeliveredQty>AvailableQty.
+orderLocation(OrderID,object(node,NodeID),contains(ProductID,RemainingQty),TimeStep+1):- deliver(RobotID,OrderID,with(ShelfID,ProductID,DeliveredQty),TimeStep), orderLocation(OrderID,object(node,NodeID),contains(ProductID,TotalQty),TimeStep), RemainingQty=TotalQty-DeliveredQty.
+productLocatedAt(ProductID,object(shelf,ShelfID),with(quantity,RemainingQty),TimeStep+1):- deliver(RobotID,OrderID,with(ShelfID,ProductID,DeliveredQty),TimeStep), productLocatedAt(ProductID,object(shelf,ShelfID),with(quantity,TotalQty),TimeStep), RemainingQty=TotalQty-DeliveredQty.
+orderLocation(OrderID,object(node,NodeID),contains(ProductID,Qty),TimeStep+1):- orderLocation(OrderID,object(node,NodeID),contains(ProductID,Qty),TimeStep), productLocatedAt(ProductID,object(shelf,ShelfID),with(quantity,AvailableQty),TimeStep), not deliver(_,OrderID,with(ShelfID,ProductID,_),TimeStep), TimeStep<t.
+productLocatedAt(ProductID,object(shelf,ShelfID),with(quantity,Qty),TimeStep+1):- productLocatedAt(ProductID,object(shelf,ShelfID),with(quantity,Qty),TimeStep), not deliver(_,_,with(ShelfID,ProductID,_),TimeStep), TimeStep<t.
